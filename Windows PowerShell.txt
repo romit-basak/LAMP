@@ -1,0 +1,105 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\LampAdmin> $root  = "C:\Users\Public\LAMP_DataStore"
+PS C:\Users\LampAdmin> $stage = "$env:USERPROFILE\Desktop\lamp_transfer"
+PS C:\Users\LampAdmin>
+PS C:\Users\LampAdmin> $items = @(
+>>   "100_Data\120_SiteReport",
+>>   "100_Data\130_BuildingFootprintsVectorData\BuildingTracesCurrent",
+>>   "100_Data\150_DigitalElevationModel\Generated_DEMs\Current_DEM",
+>>   "200_Projects\220_BuildingsToDEM"
+>> )
+PS C:\Users\LampAdmin> foreach ($i in $items) {
+>>   $dest = Join-Path $stage $i
+>>   New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
+>>   Copy-Item -Recurse -Force (Join-Path $root $i) $dest
+>> }
+Copy-Item : Cannot find path 'C:\Users\Public\LAMP_DataStore\100_Data\120_SiteReport' because it does not exist.
+At line:4 char:3
++   Copy-Item -Recurse -Force (Join-Path $root $i) $dest
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Public...\120_SiteReport:String) [Copy-Item], ItemNotFoundExce
+   ption
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.CopyItemCommand
+
+Copy-Item : Cannot find path
+'C:\Users\Public\LAMP_DataStore\100_Data\130_BuildingFootprintsVectorData\BuildingTracesCurrent' because it does not
+exist.
+At line:4 char:3
++   Copy-Item -Recurse -Force (Join-Path $root $i) $dest
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Public...ngTracesCurrent:String) [Copy-Item], ItemNotFoundExce
+   ption
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.CopyItemCommand
+
+Copy-Item : Cannot find path
+'C:\Users\Public\LAMP_DataStore\100_Data\150_DigitalElevationModel\Generated_DEMs\Current_DEM' because it does not
+exist.
+At line:4 char:3
++   Copy-Item -Recurse -Force (Join-Path $root $i) $dest
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Public...EMs\Current_DEM:String) [Copy-Item], ItemNotFoundExce
+   ption
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.CopyItemCommand
+
+Copy-Item : Cannot find path 'C:\Users\Public\LAMP_DataStore\200_Projects\220_BuildingsToDEM' because it does not
+exist.
+At line:4 char:3
++   Copy-Item -Recurse -Force (Join-Path $root $i) $dest
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Public..._BuildingsToDEM:String) [Copy-Item], ItemNotFoundExce
+   ption
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.CopyItemCommand
+
+PS C:\Users\LampAdmin>
+PS C:\Users\LampAdmin> # other contributor's code, minus its venv
+PS C:\Users\LampAdmin> $cm = "200_Projects\210_GSOC\code-manan\lamp-gsoc-2026"
+PS C:\Users\LampAdmin> New-Item -ItemType Directory -Force -Path (Join-Path $stage $cm) | Out-Null
+PS C:\Users\LampAdmin> robocopy (Join-Path $root $cm) (Join-Path $stage $cm) /E /XD venv .venv output
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows
+-------------------------------------------------------------------------------
+
+  Started : Wednesday, June 10, 2026 5:44:12 PM
+   Source : C:\Users\Public\LAMP_DataStore\200_Projects\210_GSOC\code-manan\lamp-gsoc-2026\
+     Dest : C:\Users\LampAdmin\Desktop\lamp_transfer\200_Projects\210_GSOC\code-manan\lamp-gsoc-2026\
+
+    Files : *.*
+
+ Exc Dirs : venv
+            .venv
+            output
+
+  Options : *.* /S /E /DCOPY:DA /COPY:DAT /R:1000000 /W:30
+
+------------------------------------------------------------------------------
+
+2026/06/10 17:44:12 ERROR 3 (0x00000003) Accessing Source Directory C:\Users\Public\LAMP_DataStore\200_Projects\210_GSOC\code-manan\lamp-gsoc-2026\
+The system cannot find the path specified.
+PS C:\Users\LampAdmin>
+PS C:\Users\LampAdmin> # environment manifest (don't copy the venv itself)
+PS C:\Users\LampAdmin> & (Join-Path $root "200_Projects\210_GSOC\.venv\Scripts\python.exe") -m pip freeze |
+>>   Out-File (Join-Path $stage "requirements.txt") -Encoding utf8
+& : The term 'C:\Users\Public\LAMP_DataStore\200_Projects\210_GSOC\.venv\Scripts\python.exe' is not recognized as the
+name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again.
+At line:1 char:3
++ & (Join-Path $root "200_Projects\210_GSOC\.venv\Scripts\python.exe")  ...
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Public...ipts\python.exe:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\Users\LampAdmin>
+PS C:\Users\LampAdmin> Compress-Archive -Path "$stage\*" -DestinationPath "$env:USERPROFILE\Desktop\lamp_transfer.zip" -Force
+PS C:\Users\LampAdmin> Get-FileHash "$env:USERPROFILE\Desktop\lamp_transfer.zip" -Algorithm SHA256
+
+Algorithm       Hash                                                                   Path
+---------       ----                                                                   ----
+SHA256          A38D18EF0D53F6462ADBEE743123DAD8004F3AD95B3D9B8A325AAB78D83E866C       C:\Users\LampAdmin\Desktop\la...
+
+
+PS C:\Users\LampAdmin>

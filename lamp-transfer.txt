@@ -1,0 +1,30 @@
+$root  = "C:\Users\Public\LAMP_DataStore\ElBagawat"   # adjust if the check above says otherwise
+$stage = "$env:USERPROFILE\Desktop\lamp_transfer"
+Remove-Item $stage, "$env:USERPROFILE\Desktop\lamp_transfer.zip" -Recurse -Force -ErrorAction SilentlyContinue
+
+$items = @(
+  "100_Data\120_SiteReport",
+  "100_Data\130_BuildingFootprintsVectorData\BuildingTracesCurrent",
+  "100_Data\150_DigitalElevationModel\Generated_DEMs\Current_DEM",
+  "200_Projects\220_BuildingsToDEM"
+)
+foreach ($i in $items) {
+  $src = Join-Path $root $i
+  if (-not (Test-Path $src)) { Write-Warning "MISSING: $src"; continue }
+  $dest = Join-Path $stage $i
+  New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
+  Copy-Item -Recurse -Force $src $dest
+  Write-Host "OK: $i"
+}
+
+$cm = "200_Projects\210_GSOC\code-manan\lamp-gsoc-2026"
+robocopy (Join-Path $root $cm) (Join-Path $stage $cm) /E /XD venv .venv output
+
+& (Join-Path $root "200_Projects\210_GSOC\.venv\Scripts\python.exe") -m pip freeze |
+  Out-File (Join-Path $stage "requirements.txt") -Encoding utf8
+
+# the ?Zone.Identifier files will break extraction on macOS — drop them
+Get-ChildItem $stage -Recurse -File | Where-Object Name -like "*Zone.Identifier*" | Remove-Item
+
+Compress-Archive -Path "$stage\*" -DestinationPath "$env:USERPROFILE\Desktop\lamp_transfer.zip" -Force
+Get-FileHash "$env:USERPROFILE\Desktop\lamp_transfer.zip" -Algorithm SHA256
